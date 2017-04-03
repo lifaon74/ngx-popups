@@ -7,7 +7,7 @@
 Popups for angular 4+ : load dynamically your components into a popup. Minimal style and html for easy personalization.
 This library use [ngx-dom-component](https://github.com/lifaon74/ngx-dom-component). Moreover to be compatible with internet explorer and edge you could be interested to use [events-polyfill](https://github.com/lifaon74/events-polyfill), because ngx-popups use 'once' property of addEventListener.
 
-See *example/* if needed.
+See [example/](./example) if needed.
 
 ## Install
 ```
