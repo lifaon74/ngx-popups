@@ -1,6 +1,6 @@
 {
   "name": "ngx-popups",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Angular 4+ popups",
   "main": "ngx-popups.bundle.js",
   "module": "ngx-popups.module.js",
