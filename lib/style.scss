@@ -1,0 +1,54 @@
+$popup-transition-time: 250ms !default;
+$popup-background-color: rgba(black, 0.5) !default;
+$popup-content-background-color: white !default;
+$popup-content-width: 500px !default;
+$popup-content-top-offset: 300px !default;
+$popup-content-translate: 100px !default;
+
+
+ngx-popups {
+  display: block;
+  position: fixed;
+  z-index: 99;
+
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  ngx-popup {
+    display: block;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: $popup-background-color;
+
+    opacity: 0;
+    transition: opacity $popup-transition-time;
+
+    .content {
+      width: $popup-content-width;
+
+      margin: $popup-content-top-offset auto 50px;
+      background-color: $popup-content-background-color;
+
+      transform: translateY(-$popup-content-translate);
+      transition: transform $popup-transition-time;
+    }
+
+    &.open {
+      opacity: 1;
+
+      .content {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  &:not(.visible) {
+    display: none;
+  }
+}

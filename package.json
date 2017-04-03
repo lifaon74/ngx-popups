@@ -1,0 +1,39 @@
+{
+  "name": "ngx-popups",
+  "version": "0.0.2",
+  "description": "Angular 2+ popups",
+  "main": "ngx-popups.bundle.js",
+  "module": "ngx-popups.module.js",
+  "jsnext:main": "ngx-popups.js",
+  "types": "ngx-popups.d.ts",
+  "scripts": {
+    "start": "ts-node ./tools/make.ts",
+    "publish": "npm publish ./dist"
+  },
+  "author": "valentin",
+  "license": "ISC",
+  "peerDependencies": {
+    "@angular/core": ">=2.0.0",
+    "ngx-dom-component": ">=0.0.3"
+  },
+  "devDependencies": {
+    "@angular/compiler": "^4.0.1",
+    "@angular/compiler-cli": "^4.0.1",
+    "@angular/core": "^4.0.1",
+    "@types/node": "^7.0.0",
+    "codelyzer": "^3.0.0-beta.4",
+    "core-js": "^2.4.1",
+    "fs-promise": "^2.0.0",
+    "ngx-dom-component": "0.0.3",
+    "rimraf": "^2.5.4",
+    "rollup": "^0.41.4",
+    "rxjs": "^5.0.3",
+    "systemjs": "0.20.11",
+    "ts-helpers": "^1.1.2",
+    "ts-node": "^2.0.0",
+    "tslib": "^1.5.0",
+    "tslint": "^5.0.0",
+    "typescript": "^2.2.2",
+    "zone.js": "^0.8.5"
+  }
+}

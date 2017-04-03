@@ -1,0 +1,32 @@
+ngx-popups {
+  display: block;
+  position: fixed;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0; }
+  ngx-popups ngx-popup {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 250ms; }
+    ngx-popups ngx-popup .content {
+      width: 500px;
+      margin: 300px auto 50px;
+      background-color: white;
+      transform: translateY(-100px);
+      transition: transform 250ms; }
+    ngx-popups ngx-popup.open {
+      opacity: 1; }
+      ngx-popups ngx-popup.open .content {
+        transform: translateY(0); }
+  ngx-popups:not(.visible) {
+    display: none; }
+
+/*# sourceMappingURL=style.css.map */
