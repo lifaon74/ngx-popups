@@ -1,6 +1,6 @@
 {
   "name": "ngx-popups",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Angular 4+ popups",
   "main": "ngx-popups.bundle.js",
   "module": "ngx-popups.module.js",
@@ -9,6 +9,10 @@
   "scripts": {
     "start": "ts-node ./tools/make.ts",
     "publish": "npm publish ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lifaon74/ctx-polyfill"
   },
   "author": "valentin",
   "license": "ISC",
