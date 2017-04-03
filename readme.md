@@ -1,6 +1,6 @@
 [![npm version](https://badge.fury.io/js/ngx-popups.svg)](https://www.npmjs.com/package/ngx-popups)
 
-[![NPM](https://nodei.co/npm/ngx-popups.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/ng2-popups/)
+[![NPM](https://nodei.co/npm/ngx-popups.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/ngx-popups/)
 
 # ngx-popups
 
@@ -24,7 +24,7 @@ export class AppModule { }
 And put `<ngx-popups></ngx-popups>` into your main component template.
 
 Into your SystemJs config you'll need to put :
-```json
+```ts
 packages: {
     'ngx-popups', {
 		main: 'path_to/ngx-popups.js',
