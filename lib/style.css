@@ -2,12 +2,14 @@ ngx-popups {
   display: block;
   position: fixed;
   z-index: 99;
+  pointer-events: none;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0; }
   ngx-popups ngx-popup {
     display: block;
+    pointer-events: auto;
     position: absolute;
     top: 0;
     left: 0;

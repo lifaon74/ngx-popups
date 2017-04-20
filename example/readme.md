@@ -12,8 +12,8 @@ import { NgxPopupComponent, NgxPopupService } from 'ngx-popups';
   `
 })
 export class MyComponent {
-  @Input() popup;
-  @Input() message;
+  @Input() popup: NgxPopupComponent;
+  @Input() message: string;
 }
 
 @Component({
@@ -35,7 +35,7 @@ export class AboutComponent {
 
       popup.addEventListener('close', () => {
         console.log('Popup is closed');
-      }, { once: true })
+      }, { once: true });
     }).catch(() => {
       console.warn('Popup opening has been cancelled');
     });
