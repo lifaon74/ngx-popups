@@ -1,6 +1,6 @@
 {
   "name": "ngx-popups",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Angular 4+ popups",
   "main": "ngx-popups.bundle.js",
   "module": "ngx-popups.module.js",
@@ -28,7 +28,7 @@
     "codelyzer": "^3.0.0-beta.4",
     "core-js": "^2.4.1",
     "fs-promise": "^2.0.0",
-    "ngx-dom-component": "^1.0.0",
+    "ngx-dom-component": "latest",
     "rimraf": "^2.5.4",
     "rollup": "^0.41.4",
     "rxjs": "^5.0.3",

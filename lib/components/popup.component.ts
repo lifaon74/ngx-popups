@@ -29,9 +29,9 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
   public backgroundClosable: boolean  = true;
 
   public _element: HTMLElement;
-  private ngxDOMComponentContainer: NgxDOMComponentContainer;
-  private ngxDOMComponent: NgxDOMComponent;
-  private state: NgxPopupState = NgxPopupState.CLOSED;
+  public ngxDOMComponentContainer: NgxDOMComponentContainer;
+  public ngxDOMComponent: NgxDOMComponent;
+  public state: NgxPopupState = NgxPopupState.CLOSED;
 
   private openPromise: DeferredPromise<void>;
   private closePromise: DeferredPromise<void>;
@@ -127,9 +127,9 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
               requestAnimationFrame(() => { // allows content to be rendered before adding 'open'
                 this._element.classList.add('open');
                 if(waitTransitionEnd) {
-                  this.addEventListener('transitionend', () => {
+                  this.waitTransitionEnd().then(() => {
                     if(this.openPromise) this.openPromise.resolve();
-                  }, { once: true });
+                  });
                 } else {
                   this.openPromise.resolve();
                 }
@@ -185,9 +185,9 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
               this.state = NgxPopupState.CLOSING;
               this._element.classList.remove('open');
               if(waitTransitionEnd) {
-                this.addEventListener('transitionend', () => {
+                this.waitTransitionEnd().then(() => {
                   if(this.closePromise) this.closePromise.resolve();
-                }, { once: true });
+                });
               } else {
                 this.closePromise.resolve();
               }
@@ -223,5 +223,35 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
     config.inputs = config.inputs || {};
     config.inputs['popup'] = this;
     this.ngxDOMComponent = this.ngxDOMComponentContainer.create(config);
+  }
+
+  private waitTransitionEnd(): Promise<any> {
+    return new Promise((resolve: any) => {
+      let transitionTime: number = this.getTransitionTime(this._element);
+      if((transitionTime === null) || (transitionTime > 10)) {
+        setTimeout(resolve, transitionTime || 250);
+        this.addEventListener('transitionend', resolve, { once: true });
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  private getTransitionTime(element: HTMLElement): number {
+    const computedStyle: CSSStyleDeclaration = window.getComputedStyle(element);
+    if(computedStyle.transitionDuration) {
+      const timeReg = new RegExp('([\\d\\.]+)((?:s)|(?:ms))', 'g');
+      const timeMatch = timeReg.exec(computedStyle.transitionDuration);
+      if(timeMatch) {
+        const time: number = parseFloat(timeMatch[1]);
+        switch(timeMatch[2]) {
+          case 's':
+            return time * 1000;
+          case 'ms':
+            return time;
+        }
+      }
+    }
+    return null;
   }
 }
