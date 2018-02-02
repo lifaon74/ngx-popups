@@ -1,17 +1,18 @@
 import {
-  Component, ViewContainerRef, ViewChild, ElementRef, AfterViewInit, HostListener, OnDestroy
+  Component, ViewContainerRef, ViewChild, ElementRef, AfterViewInit, HostListener
 } from '@angular/core';
 import { NgxDOMComponent, NgxDOMComponentContainer, NgxDOMComponentService } from 'ngx-dom-component';
 import { IPopupConfig } from '../services/ngx-popup.service';
 import { DeferredPromise } from '../classes/DeferredPromise';
 
-
 export enum NgxPopupState {
-  CLOSED,
-  CLOSING,
-  OPENED,
-  OPENING
+  CLOSED = 'closed',
+  CLOSING = 'closing',
+  OPENED = 'opened',
+  OPENING = 'opening'
 }
+
+export type TNgxPopupState = 'closed' | 'closing' | 'opened' | 'opening' | NgxPopupState;
 
 @Component({
   selector: 'ngx-popup',
@@ -21,41 +22,38 @@ export enum NgxPopupState {
    </div>
   `
 })
-export class NgxPopupComponent implements AfterViewInit, OnDestroy {
+export class NgxPopupComponent implements AfterViewInit {
 
-  @ViewChild('contentContainer', { read: ViewContainerRef }) contentContainer: ViewContainerRef;
+  @ViewChild('contentContainer', { read: ViewContainerRef })
+  protected contentContainer: ViewContainerRef;
 
-  public closable: boolean            = true;
-  public backgroundClosable: boolean  = true;
+  protected _closableListener: (() => void) | null;
+  protected _backgroundClosable: boolean;
 
-  public _element: HTMLElement;
-  public ngxDOMComponentContainer: NgxDOMComponentContainer;
-  public ngxDOMComponent: NgxDOMComponent;
-  public state: NgxPopupState = NgxPopupState.CLOSED;
+  protected _ngxDOMComponentContainer: NgxDOMComponentContainer;
+  protected _ngxDOMComponent: NgxDOMComponent;
 
-  private openPromise: DeferredPromise<void>;
-  private closePromise: DeferredPromise<void>;
+  protected _openPromise: DeferredPromise<void> | null;
+  protected _closePromise: DeferredPromise<void> | null;
 
-  private closableListener: any;
+  protected _state: TNgxPopupState;
+  protected _element: HTMLElement;
 
-  constructor(
-    private ngxDOMComponentService: NgxDOMComponentService,
-    element: ElementRef
-  ) {
+  constructor(private ngxDOMComponentService: NgxDOMComponentService,
+              element: ElementRef) {
+    this._closableListener    = null;
+    this._backgroundClosable  = true;
+    this._openPromise         = null;
+    this._closePromise        = null;
+    this._state = NgxPopupState.CLOSED;
     this._element = element.nativeElement;
-
-    this.closableListener = (event: Event) => {
-      if(!this.closable) event.preventDefault();
-    };
-
-    this.addEventListener('beforeclose',  this.closableListener);
   }
 
   /**
    * Returns the instance of the injected component.
    */
   get contentInstance(): any {
-    return this.ngxDOMComponent.instance;
+    return this._ngxDOMComponent.instance;
   }
 
   /**
@@ -66,17 +64,51 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
     return this._element;
   }
 
+  get state(): TNgxPopupState {
+    return this._state;
+  }
+
+
+  get closable(): boolean {
+    return this._closableListener === null;
+  }
+
+  set closable(value: boolean) {
+    value = Boolean(value);
+    const closable: boolean = (this._closableListener === null);
+    if (value !== closable) {
+      if (closable) { // switch from true to false
+        const listener = (event: Event) => {
+          event.preventDefault();
+        };
+
+        this.addEventListener('beforeclose', listener);
+        this._closableListener = () => {
+          this.removeEventListener('beforeclose', listener);
+          this._closableListener = null;
+        };
+      } else { // switch from false to true
+        this._closableListener();
+      }
+    }
+  }
+
+  get backgroundClosable(): boolean {
+    return this._backgroundClosable;
+  }
+
+  set backgroundClosable(value: boolean) {
+    this._backgroundClosable = Boolean(value);
+  }
+
 
   ngAfterViewInit() {
-    this.ngxDOMComponentContainer = this.ngxDOMComponentService.createContainer(this.contentContainer);
+    this._ngxDOMComponentContainer = this.ngxDOMComponentService.createContainer(this.contentContainer);
     requestAnimationFrame(() => { // allows css to apply without the class 'open'
       this.dispatchEvent(new CustomEvent('ready'));
     });
   }
 
-  ngOnDestroy() {
-    this.removeEventListener('beforeclose',  this.closableListener);
-  }
 
   /**
    * The following events are available
@@ -104,57 +136,61 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
 
 
   open(config: IPopupConfig, waitTransitionEnd: boolean = true, detail?: any): Promise<void> {
-    if(!this.openPromise) {
-      this.openPromise = new DeferredPromise<void>(() => {
-        switch(this.state) {
+    if (this._openPromise === null) {
+      this._openPromise = new DeferredPromise<void>(() => {
+        switch (this._state) {
           case NgxPopupState.CLOSED:
           case NgxPopupState.CLOSING:
-            if(!this.dispatchEvent(new CustomEvent('beforeopen', {
-                detail: detail,
-                bubbles: false,
-                cancelable: true
-              }))) {
-              this.openPromise.reject(new Error('Open prevented'));
+            const beforeOpenPrevented: boolean = !this.dispatchEvent(new CustomEvent('beforeopen', {
+              detail: detail,
+              bubbles: false,
+              cancelable: true
+            }));
+
+            if (beforeOpenPrevented) {
+              this._openPromise.reject(new Error(`Open prevented`));
             } else {
-              if(this.state === NgxPopupState.CLOSING) {
+              if (this._state === NgxPopupState.CLOSING) {
                 this.dispatchEvent(new CustomEvent('cancelclose'));
-                this.closePromise.reject(new Error('Close cancelled'));
+                this._closePromise.reject(new Error(`Close cancelled`));
               }
 
-              this.state = NgxPopupState.OPENING;
-              this.build(config);
+              this._state = NgxPopupState.OPENING;
+              this._build(config);
 
               requestAnimationFrame(() => { // allows content to be rendered before adding 'open'
                 this._element.classList.add('open');
-                if(waitTransitionEnd) {
-                  this.waitTransitionEnd().then(() => {
-                    if(this.openPromise) this.openPromise.resolve();
+                if (waitTransitionEnd) {
+                  this._waitTransitionEnd().then(() => {
+                    if (this._openPromise !== null) {
+                      this._openPromise.resolve();
+                    }
                   });
                 } else {
-                  this.openPromise.resolve();
+                  this._openPromise.resolve();
                 }
               });
             }
             break;
           default:
-            this.openPromise.reject(new Error('Popup not closed'));
+            this._openPromise.reject(new Error(`Popup not closed`));
             break;
         }
       });
 
-      this.openPromise
-      .then(() => {
-        this.state = NgxPopupState.OPENED;
-        this.openPromise = null;
-        this.dispatchEvent(new CustomEvent('open', {
-          detail: detail
-        }));
-      }).catch(() => {
-        this.openPromise = null;
-      });
+      this._openPromise
+        .then(() => {
+          this._state = NgxPopupState.OPENED;
+          this._openPromise = null;
+          this.dispatchEvent(new CustomEvent('open', {
+            detail: detail
+          }));
+        }, () => {
+          this._openPromise = null;
+        });
     }
 
-    return this.openPromise.promise;
+    return this._openPromise.promise;
   }
 
   /**
@@ -165,70 +201,78 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
    * @returns {Promise<void>} - promise resolved when the popup is closed
    */
   close(waitTransitionEnd: boolean = true, detail?: any): Promise<void> {
-    if(!this.closePromise) {
-      this.closePromise = new DeferredPromise<void>(() => {
-        switch(this.state) {
+    if (this._closePromise === null) {
+      this._closePromise = new DeferredPromise<void>(() => {
+        switch (this._state) {
           case NgxPopupState.OPENED:
           case NgxPopupState.OPENING:
-            if(!this.dispatchEvent(new CustomEvent('beforeclose', {
-                detail: detail,
-                bubbles: false,
-                cancelable: true
-              }))) {
-              this.closePromise.reject(new Error('Close prevented'));
+            const beforeClosePrevented: boolean = !this.dispatchEvent(new CustomEvent('beforeclose', {
+              detail: detail,
+              bubbles: false,
+              cancelable: true
+            }));
+
+            if (beforeClosePrevented) {
+              this._closePromise.reject(new Error(`Close prevented`));
             } else {
-              if(this.state === NgxPopupState.OPENING) {
+              if (this._state === NgxPopupState.OPENING) {
                 this.dispatchEvent(new CustomEvent('cancelopen'));
-                this.openPromise.reject(new Error('Open cancelled'));
+                this._openPromise.reject(new Error(`Open cancelled`));
               }
 
-              this.state = NgxPopupState.CLOSING;
+              this._state = NgxPopupState.CLOSING;
               this._element.classList.remove('open');
-              if(waitTransitionEnd) {
-                this.waitTransitionEnd().then(() => {
-                  if(this.closePromise) this.closePromise.resolve();
+              if (waitTransitionEnd) {
+                this._waitTransitionEnd().then(() => {
+                  if (this._closePromise !== null) {
+                    this._closePromise.resolve();
+                  }
                 });
               } else {
-                this.closePromise.resolve();
+                this._closePromise.resolve();
               }
             }
             break;
           default:
-            this.closePromise.reject(new Error('Popup not opened'));
+            this._closePromise.reject(new Error(`Popup not opened`));
             break;
         }
       });
 
-      this.closePromise
-      .then(() => {
-        this.state = NgxPopupState.CLOSED;
-        this.closePromise = null;
-        this.dispatchEvent(new CustomEvent('close', {
-          detail: detail
-        }));
-      }).catch(() => {
-        this.closePromise = null;
-      });
+      this._closePromise
+        .then(() => {
+          this._state = NgxPopupState.CLOSED;
+          this._closePromise = null;
+          this.dispatchEvent(new CustomEvent('close', {
+            detail: detail
+          }));
+        }, () => {
+          this._closePromise = null;
+        });
     }
 
-    return this.closePromise.promise;
+    return this._closePromise.promise;
   }
 
 
-  @HostListener('click', ['$event']) onClickBackground(event: any) {
-    if(this.backgroundClosable && (event.target === this._element)) this.close(true, event);
+  @HostListener('click', ['$event'])
+  onClickBackground(event: any) {
+    if (this._backgroundClosable && (event.target === this._element)) {
+      this.close(true, event);
+    }
   }
 
-  private build(config: IPopupConfig) {
+
+  private _build(config: IPopupConfig) {
     config.inputs = config.inputs || {};
     config.inputs['popup'] = this;
-    this.ngxDOMComponent = this.ngxDOMComponentContainer.create(config);
+    this._ngxDOMComponent = this._ngxDOMComponentContainer.create(config);
   }
 
-  private waitTransitionEnd(): Promise<any> {
+  private _waitTransitionEnd(): Promise<any> {
     return new Promise((resolve: any) => {
-      let transitionTime: number = this.getTransitionTime(this._element);
-      if((transitionTime === null) || (transitionTime > 10)) {
+      const transitionTime: number = this._getTransitionTime(this._element);
+      if ((transitionTime === null) || (transitionTime > 10)) {
         setTimeout(resolve, transitionTime || 250);
         this.addEventListener('transitionend', resolve, { once: true });
       } else {
@@ -237,14 +281,14 @@ export class NgxPopupComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private getTransitionTime(element: HTMLElement): number {
+  private _getTransitionTime(element: HTMLElement): number {
     const computedStyle: CSSStyleDeclaration = window.getComputedStyle(element);
-    if(computedStyle.transitionDuration) {
-      const timeReg = new RegExp('([\\d\\.]+)((?:s)|(?:ms))', 'g');
-      const timeMatch = timeReg.exec(computedStyle.transitionDuration);
-      if(timeMatch) {
+    if (computedStyle.transitionDuration) {
+      const timeReg: RegExp = new RegExp('([\\d\\.]+)((?:s)|(?:ms))', 'g');
+      const timeMatch: RegExpExecArray | null = timeReg.exec(computedStyle.transitionDuration);
+      if (timeMatch !== null) {
         const time: number = parseFloat(timeMatch[1]);
-        switch(timeMatch[2]) {
+        switch (timeMatch[2]) {
           case 's':
             return time * 1000;
           case 'ms':

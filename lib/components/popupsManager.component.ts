@@ -21,72 +21,72 @@ import { IPopupConfig, NgxPopupService } from '../services/ngx-popup.service';
 })
 export class NgxPopupsManagerComponent implements AfterViewInit {
 
-  @ViewChild('popupsContainer', { read: ViewContainerRef }) popupsContainer: ViewContainerRef;
+  @ViewChild('popupsContainer', { read: ViewContainerRef })
+  public popupsContainer: ViewContainerRef;
 
-  private popups: NgxDOMComponent[] = [];
-  private element: HTMLElement;
-  private ngxDOMComponentContainer: NgxDOMComponentContainer;
+  private _popups: NgxDOMComponent[];
+  private _element: HTMLElement;
+  private _ngxDOMComponentContainer: NgxDOMComponentContainer;
 
   constructor(private popupService: NgxPopupService,
               private ngxDOMComponentService: NgxDOMComponentService,
               element: ElementRef) {
-    this.element = element.nativeElement;
-    if(!this.element.id) this.element.id = 'popups-manager-' + Math.floor(Math.random() * 1e10).toString();
-    this.popupService.registerManager(this.element.id, this);
+    this._popups = [];
+    this._element = element.nativeElement;
+    if (!this._element.id) {
+      this._element.id = 'popups-manager-' + Math.floor(Math.random() * 1e10).toString();
+    }
+    this.popupService.registerManager(this._element.id, this);
     this.checkVisibility();
   }
 
   ngAfterViewInit() {
-    this.ngxDOMComponentContainer = this.ngxDOMComponentService.createContainer(this.popupsContainer);
+    this._ngxDOMComponentContainer = this.ngxDOMComponentService.createContainer(this.popupsContainer);
   }
 
-  open(config?: IPopupConfig, waitTransitionEnd: boolean = true, detail?: any): Promise<NgxPopupComponent> {
-    return new Promise((resolve: any, reject: any) => {
-      let ngxDOMComponent: NgxDOMComponent = this.ngxDOMComponentContainer.create({
+  open(config?: IPopupConfig, waitTransitionEnd?: boolean, detail?: any): Promise<NgxPopupComponent> {
+    return new Promise((resolve: any) => {
+      const ngxDOMComponent: NgxDOMComponent = this._ngxDOMComponentContainer.create({
         componentType: NgxPopupComponent
       });
-      this.popups.push(ngxDOMComponent);
+      this._popups.push(ngxDOMComponent);
       this.checkVisibility();
 
-      let popup: NgxPopupComponent = ngxDOMComponent.instance;
+      const popup: NgxPopupComponent = ngxDOMComponent.instance;
       popup.addEventListener('ready', () => {
         resolve(
-          popup.open(config, waitTransitionEnd).then(() => {
+          popup.open(config, waitTransitionEnd, detail).then(() => {
             return popup;
           })
         );
       }, { once: true });
 
       popup.addEventListener('close', () => {
-        let index: number = this.popups.indexOf(ngxDOMComponent);
+        let index: number = this._popups.indexOf(ngxDOMComponent);
         if(index >= 0) {
-          this.popups[index].destroy();
-          this.popups.splice(index, 1);
+          this._popups[index].destroy();
+          this._popups.splice(index, 1);
           this.checkVisibility();
         }
       }, { once: true });
     });
   }
 
-  close(popup: NgxPopupComponent, detail?: any) {
-    return popup.close();
+  close(popup: NgxPopupComponent, waitTransitionEnd?: boolean, detail?: any): Promise<void> {
+    return popup.close(waitTransitionEnd, detail);
   }
 
   closeAll(): Promise<void> {
-    let promises: any[] = [];
-    let popups = this.popups.slice(0); // clone to avoid removing popups before finishing
-    for(let popup of popups) {
-      promises.push(popup.instance.close());
-    }
-    return Promise.all(promises).then(() => void 0);
+    return Promise.all(
+      this._popups.slice(0)  // clone to avoid removing popups before finishing
+        .map((popup: NgxDOMComponent) => {
+          return popup.instance.close();
+        })
+    ).then(() => void 0);
   }
 
   private checkVisibility() {
-    if(this.popups.length === 0) {
-      this.element.classList.remove('visible');
-    } else {
-      this.element.classList.add('visible');
-    }
+    this._element.classList.toggle('visible', this._popups.length > 0);
   }
 
 }

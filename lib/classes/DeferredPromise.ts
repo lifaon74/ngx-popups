@@ -1,33 +1,49 @@
-export const PromiseStatus = {
-  resolved: 'resolved',
-  rejected: 'rejected',
-  pending: 'pending',
-};
+// 08/06/2017
 
-export class DeferredPromise<T> {
+export type PromiseStatus = 'resolved' | 'rejected' | 'pending';
+
+export class DeferredPromise<T = any> {
+
+  static RESOLVED: string = 'resolved';
+  static REJECTED: string = 'rejected';
+  static PENDING: string = 'pending';
+
+  static resolve<T>(value?: T): DeferredPromise<T> {
+    const promise = new DeferredPromise<T>();
+    promise.resolve(value);
+    return promise;
+  }
+
+  static reject<T>(reason: any): DeferredPromise<T> {
+    const promise = new DeferredPromise<T>();
+    promise.reject(reason);
+    return promise;
+  }
+
+
   private _promise: Promise<T>;
   private _resolve: ((value: T) => any);
   private _reject: ((error: any) => any);
-  private _status: string;
+  private _status: PromiseStatus;
 
   constructor(callback?: (deferred: DeferredPromise<T>) => any) {
-    this._status = PromiseStatus.pending;
+    this._status = DeferredPromise.PENDING as PromiseStatus;
 
     this._promise = new Promise<T>((resolve: any, reject: any) => {
       this._resolve = resolve;
       this._reject = reject;
 
       if(callback !== void 0) { callback.call(this, this); }
-    });
-
-    this._promise.then(() => {
-      this._status = PromiseStatus.resolved;
-    }).catch(() => {
-      this._status = PromiseStatus.rejected;
+    }).then((value: T) => {
+      this._status = DeferredPromise.RESOLVED as PromiseStatus;
+      return value;
+    }, (error: any) => {
+      this._status = DeferredPromise.REJECTED as PromiseStatus;
+      throw error;
     });
   }
 
-  get status(): string {
+  get status(): PromiseStatus {
     return this._status;
   }
 
@@ -35,41 +51,54 @@ export class DeferredPromise<T> {
     return this._promise;
   }
 
-  resolve(value?: T) {
-    if(this._status === PromiseStatus.pending) {
+  resolve(value?: T): void {
+    if(this._status === DeferredPromise.PENDING) {
       this._resolve(value);
+    } else {
+      throw new TypeError('promise already resolved/rejected');
     }
   }
 
-  reject(reason: any) {
-    if(this._status === PromiseStatus.pending) {
+  reject(reason: any): void {
+    if(this._status === DeferredPromise.PENDING) {
       this._reject(reason);
+    } else {
+      throw new TypeError('promise already resolved/rejected');
     }
   }
 
-  then<A>(callback: ((result: T) => any)): DeferredPromise<A> {
+  then<A = any>(onFulfilled: ((result: T) => A), onRejected?: ((reason: any) => A)): DeferredPromise<A> {
     return new DeferredPromise<A>((deferred: DeferredPromise<A>) => {
       this._promise.then((result: T) => {
-        let _return: A = callback(result);
-        deferred.resolve(_return);
-      }).catch((reason: any) => {
-        deferred.reject(reason);
+        try {
+          deferred.resolve(onFulfilled(result));
+        } catch(error) {
+          deferred.reject(error);
+        }
+      }, (reason: any) => {
+        if(onRejected === void 0) {
+          deferred.reject(reason);
+        } else {
+          try {
+            deferred.resolve(onRejected(reason));
+          } catch(error) {
+            deferred.reject(error);
+          }
+        }
       });
     });
   }
 
-  catch<A>(callback: ((reason: any) => any)): DeferredPromise<A> {
-    return new DeferredPromise<A>((deferred: DeferredPromise<A>) => {
+  catch<A = any>(onRejected: ((reason: any) => A)): DeferredPromise<A | T> {
+    return new DeferredPromise<A | T>((deferred: DeferredPromise<A | T>) => {
       this._promise.then((result: T) => {
-        deferred.resolve(<any>result);
-      }).catch((reason: any) => {
-        let _return: any;
+        deferred.resolve(result);
+      },(reason: any) => {
         try {
-          _return = callback(reason);
+          deferred.resolve(onRejected(reason));
         } catch(error) {
           deferred.reject(error);
         }
-        deferred.resolve(_return);
       });
     });
   }

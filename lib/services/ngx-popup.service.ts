@@ -1,20 +1,23 @@
 import { Injectable } from '@angular/core';
 import { NgxPopupComponent } from '../components/popup.component';
 import { NgxPopupsManagerComponent } from '../components/popupsManager.component';
-import { NgxDOMComponentCreateOptions } from 'ngx-dom-component';
+import { NgxDOMComponentOptions } from 'ngx-dom-component';
 
 
-export interface IPopupConfig extends NgxDOMComponentCreateOptions {}
+export interface IPopupConfig extends NgxDOMComponentOptions { }
 
 @Injectable()
 export class NgxPopupService {
 
   private managers: Map<string, NgxPopupsManagerComponent> = new Map<string, NgxPopupsManagerComponent>();
 
-  constructor() {}
+  constructor() { }
 
   registerManager(id: string, manager: NgxPopupsManagerComponent) {
-    if(this.managers.get(id)) throw new Error('Duplicate manager id : ' + id);
+    if (this.managers.get(id)) {
+      throw new Error(`Duplicate manager id: ${id}`);
+    }
+
     this.managers.set(id, manager);
   }
 
@@ -53,18 +56,24 @@ export class NgxPopupService {
     return this.getManager(managerId).closeAll();
   }
 
-  private getManager(id: string): NgxPopupsManagerComponent {
+
+  protected getManager(id?: string): NgxPopupsManagerComponent {
     let manager: NgxPopupsManagerComponent;
-    if(typeof id === 'string') {
-      manager = this.managers.get(id);
-      if(!manager) throw new Error('Invalid manager id : ' + id);
-    } else {
-      if(this.managers.size > 0) {
+    if (id === void 0) {
+      if (this.managers.size > 0) {
         manager = this.managers.values().next().value;
       } else {
-        throw new Error('No manager for PopupService');
+        throw new Error(`No manager for PopupService`);
       }
+    } else if (typeof id === 'string') {
+      manager = this.managers.get(id);
+      if (manager === void 0) {
+        throw new Error(`Invalid manager id: ${id}`);
+      }
+    } else {
+      throw new TypeError(`Expected string or undefined as id`);
     }
     return manager;
   }
+
 }

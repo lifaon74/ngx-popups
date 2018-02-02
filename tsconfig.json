@@ -10,7 +10,7 @@
     "noImplicitAny": true,
     "stripInternal": true,
     "outDir": "./dist",
-    "lib": ["es2015", "es7", "dom"],
+    "lib": ["esnext", "es7", "dom"],
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules"

@@ -1,6 +1,6 @@
 {
   "name": "ngx-popups",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Angular 5+ popups",
   "main": "ngx-popups.bundle.js",
   "_module_": "ngx-popups.module.js",
@@ -18,7 +18,7 @@
   "license": "ISC",
   "peerDependencies": {
     "@angular/core": ">=5.0.0",
-    "ngx-dom-component": ">=1.0.0"
+    "ngx-dom-component": ">=1.2.0"
   },
   "devDependencies": {
     "@angular/compiler": "^5.2.3",
