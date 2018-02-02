@@ -1,6 +1,8 @@
 export default {
-  format: 'umd',
-  moduleName: 'ngx-popup',
+  output: {
+    name: 'ngx-popup',
+    format: 'umd',
+  },
   external: [
     '@angular/core',
     'ngx-dom-component',

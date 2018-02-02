@@ -1,9 +1,9 @@
 {
   "name": "ngx-popups",
-  "version": "1.0.5",
-  "description": "Angular 4+ popups",
+  "version": "1.1.0",
+  "description": "Angular 5+ popups",
   "main": "ngx-popups.bundle.js",
-  "module": "ngx-popups.module.js",
+  "_module_": "ngx-popups.module.js",
   "jsnext:main": "ngx-popups.js",
   "types": "ngx-popups.d.ts",
   "scripts": {
@@ -17,27 +17,27 @@
   "author": "valentin",
   "license": "ISC",
   "peerDependencies": {
-    "@angular/core": ">=4.0.0",
+    "@angular/core": ">=5.0.0",
     "ngx-dom-component": ">=1.0.0"
   },
   "devDependencies": {
-    "@angular/compiler": "^4.0.1",
-    "@angular/compiler-cli": "^4.0.1",
-    "@angular/core": "^4.0.1",
-    "@types/node": "^7.0.0",
-    "codelyzer": "^3.0.0-beta.4",
-    "core-js": "^2.4.1",
+    "@angular/compiler": "^5.2.3",
+    "@angular/compiler-cli": "^5.2.3",
+    "@angular/core": "^5.2.3",
+    "@types/node": "^9.4.0",
+    "codelyzer": "^4.1.0",
+    "core-js": "^2.5.3",
     "fs-promise": "^2.0.0",
     "ngx-dom-component": "latest",
-    "rimraf": "^2.5.4",
-    "rollup": "^0.41.4",
-    "rxjs": "^5.0.3",
-    "systemjs": "0.20.11",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.55.3",
+    "rxjs": "^5.5.6",
+    "systemjs": "0.20.19",
     "ts-helpers": "^1.1.2",
-    "ts-node": "^2.0.0",
-    "tslib": "^1.5.0",
-    "tslint": "^5.0.0",
-    "typescript": "^2.2.2",
-    "zone.js": "^0.8.5"
+    "ts-node": "^4.1.0",
+    "tslib": "^1.9.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.1",
+    "zone.js": "^0.8.20"
   }
 }

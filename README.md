@@ -4,7 +4,7 @@
 
 # ngx-popups
 
-Popups for angular 4+ : load dynamically your components into a popup. Minimal style and html for easy personalization.
+Popups for angular 5+ : load dynamically your components into a popup. Minimal style and html for easy personalization.
 This library use [ngx-dom-component](https://github.com/lifaon74/ngx-dom-component). Moreover to be compatible with internet explorer and edge you could be interested to use [events-polyfill](https://github.com/lifaon74/events-polyfill), because ngx-popups use 'once' property of addEventListener.
 
 See [example/](./example) if needed.
@@ -39,7 +39,7 @@ packages: {
 ## Style (scss or css)
 This package comes with a minimal style that you can include with :
 ```scss
-@include 'node_modules/ngx-popups/style';
+@import 'node_modules/ngx-popups/style';
 ```
 or
 ```html
